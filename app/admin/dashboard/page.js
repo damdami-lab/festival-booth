@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState(null);
   const [deptFilter, setDeptFilter] = useState('');
   const [slotFilter, setSlotFilter] = useState('');
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
   const router = useRouter();
 
   async function loadApplications() {
@@ -62,6 +63,51 @@ export default function AdminDashboard() {
     });
   }, [applications, deptFilter, slotFilter]);
 
+  const allFilteredSelected = filtered.length > 0 && filtered.every((a) => selectedIds.has(a.id));
+
+  function toggleSelectOne(id) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allFilteredSelected) {
+        filtered.forEach((a) => next.delete(a.id));
+      } else {
+        filtered.forEach((a) => next.add(a.id));
+      }
+      return next;
+    });
+  }
+
+  async function handleDeleteSelected() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (!confirm(`선택한 ${ids.length}건을 삭제할까요?`)) return;
+
+    const res = await fetch('/api/admin/delete-many', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+
+    if (res.ok) {
+      setApplications((prev) => prev.filter((a) => !selectedIds.has(a.id)));
+      setSelectedIds(new Set());
+    } else {
+      alert('선택 삭제에 실패했습니다.');
+    }
+  }
+
   async function handleDelete(id) {
     if (!confirm('이 신청 내역을 삭제할까요?')) return;
     const res = await fetch('/api/admin/delete', {
@@ -71,6 +117,11 @@ export default function AdminDashboard() {
     });
     if (res.ok) {
       setApplications((prev) => prev.filter((a) => a.id !== id));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     } else {
       alert('삭제에 실패했습니다.');
     }
@@ -155,6 +206,11 @@ export default function AdminDashboard() {
           </select>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          {selectedIds.size > 0 && (
+            <button className="secondary" onClick={handleDeleteSelected}>
+              선택 삭제 ({selectedIds.size})
+            </button>
+          )}
           <button className="secondary" onClick={loadApplications}>
             새로고침
           </button>
@@ -170,6 +226,14 @@ export default function AdminDashboard() {
         <table className="admin-table">
           <thead>
             <tr>
+              <th style={{ width: 32 }}>
+                <input
+                  type="checkbox"
+                  checked={allFilteredSelected}
+                  onChange={toggleSelectAll}
+                  aria-label="전체 선택"
+                />
+              </th>
               <th>이름</th>
               <th>반</th>
               <th>번호</th>
@@ -182,6 +246,14 @@ export default function AdminDashboard() {
           <tbody>
             {filtered.map((a) => (
               <tr key={a.id}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(a.id)}
+                    onChange={() => toggleSelectOne(a.id)}
+                    aria-label={`${a.student_name} 선택`}
+                  />
+                </td>
                 <td>{a.student_name}</td>
                 <td>{a.student_class}</td>
                 <td>{a.student_number}</td>
@@ -197,7 +269,7 @@ export default function AdminDashboard() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', color: '#9a998f', padding: '20px 0' }}>
+                <td colSpan={8} style={{ textAlign: 'center', color: '#9a998f', padding: '20px 0' }}>
                   신청 내역이 없습니다.
                 </td>
               </tr>
