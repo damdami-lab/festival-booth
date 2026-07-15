@@ -260,8 +260,21 @@ export default function AdminDashboard() {
             <div className="summary-slots">
               {TIME_SLOTS.map((t) => {
                 const count = summary[`${d}_${t.id}`] || 0;
+                const isActive = deptFilter === d && slotFilter === String(t.id);
                 return (
-                  <div key={t.id} className="summary-cell">
+                  <div
+                    key={t.id}
+                    className={`summary-cell${isActive ? ' active' : ''}`}
+                    onClick={() => {
+                      if (isActive) {
+                        setDeptFilter('');
+                        setSlotFilter('');
+                      } else {
+                        setDeptFilter(d);
+                        setSlotFilter(String(t.id));
+                      }
+                    }}
+                  >
                     <div>{t.label}</div>
                     <div className="count">
                       {count}/{CAPACITY}
@@ -312,6 +325,17 @@ export default function AdminDashboard() {
               </option>
             ))}
           </select>
+          {(deptFilter || slotFilter) && (
+            <button
+              className="secondary"
+              onClick={() => {
+                setDeptFilter('');
+                setSlotFilter('');
+              }}
+            >
+              필터 해제 ({deptFilter || '전체 과'} · {slotFilter ? `${slotFilter}타임` : '전체 타임'})
+            </button>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {selectedIds.size > 0 && (
