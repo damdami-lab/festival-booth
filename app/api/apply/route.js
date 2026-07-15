@@ -56,4 +56,50 @@ export async function POST(request) {
 
   if (existing && existing.length > 0 && existing[0].password_hash !== passwordHash) {
     return NextResponse.json(
-      { error: '이미 이
+      { error: '이미 이 반/번호로 신청한 내역이 있어요. 처음 신청할 때 설정한 비밀번호를 입력해주세요.' },
+      { status: 400 }
+    );
+  }
+
+  const results = [];
+
+  for (const sel of selections) {
+    const { department, time_slot } = sel;
+
+    if (department === ownDept) {
+      results.push({
+        time_slot,
+        department,
+        ok: false,
+        message: '본인 과 부스는 신청할 수 없습니다.',
+      });
+      continue;
+    }
+
+    const { error } = await admin.from('applications').insert({
+      student_name: String(student_name).trim(),
+      student_class: studentClass,
+      student_number: studentNumber,
+      department,
+      time_slot,
+      password_hash: passwordHash,
+    });
+
+    if (error) {
+      let message = '신청에 실패했습니다. 다시 시도해주세요.';
+      if (error.message?.includes('정원')) {
+        message = '정원이 마감되었습니다.';
+      } else if (error.code === '23505') {
+        message = '이미 같은 타임에 신청한 내역이 있습니다.';
+      } else if (error.message?.includes('본인 과')) {
+        message = '본인 과 부스는 신청할 수 없습니다.';
+      }
+      results.push({ time_slot, department, ok: false, message });
+    } else {
+      results.push({ time_slot, department, ok: true });
+    }
+  }
+
+  const anySuccess = results.some((r) => r.ok);
+  return NextResponse.json({ ok: anySuccess, results });
+}
