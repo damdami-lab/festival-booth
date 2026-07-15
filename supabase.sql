@@ -11,10 +11,12 @@ create table if not exists applications (
   department text not null check (department in ('중국어과','일본어과','독일어과','프랑스어과','스페인어과')),
   time_slot int not null check (time_slot between 1 and 4),
   created_at timestamptz not null default now(),
+  password_hash text,
   unique (student_class, student_number, time_slot)
 );
 
 -- 같은 타임에 정원(25명)을 넘으면 신청을 막는 트리거
+-- (advisory lock으로 동시 신청 race condition을 방지)
 create or replace function check_capacity()
 returns trigger as $$
 declare
