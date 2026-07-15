@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DEPARTMENTS, TIME_SLOTS } from '@/lib/departments';
+import { DEPARTMENTS, DEPARTMENT_COLORS, TIME_SLOTS } from '@/lib/departments';
 
 const CAPACITY = 25;
 
@@ -157,9 +157,12 @@ export default function AdminDashboard() {
   return (
     <main className="page" style={{ maxWidth: 960 }}>
       <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div className="eyebrow">관리자</div>
-          <h1>부스 체험 신청 현황</h1>
+        <div className="header-title">
+          <img src="/logo.png" alt="학교 로고" className="school-logo" />
+          <div>
+            <div className="eyebrow">관리자</div>
+            <h1>부스 체험 신청 현황</h1>
+          </div>
         </div>
         <button className="secondary" onClick={handleLogout}>
           로그아웃
@@ -168,22 +171,27 @@ export default function AdminDashboard() {
 
       {error && <div className="msg error">{error}</div>}
 
-      <div className="summary-grid">
-        {DEPARTMENTS.map((d) =>
-          TIME_SLOTS.map((t) => {
-            const count = summary[`${d}_${t.id}`] || 0;
-            return (
-              <div key={`${d}_${t.id}`} className="summary-cell">
-                <div>
-                  {d} · {t.label}
-                </div>
-                <div className="count">
-                  {count}/{CAPACITY}
-                </div>
-              </div>
-            );
-          })
-        )}
+      <div className="summary-list">
+        {DEPARTMENTS.map((d) => (
+          <div key={d} className="summary-row">
+            <div className="summary-dept" style={{ borderLeftColor: DEPARTMENT_COLORS[d] }}>
+              {d}
+            </div>
+            <div className="summary-slots">
+              {TIME_SLOTS.map((t) => {
+                const count = summary[`${d}_${t.id}`] || 0;
+                return (
+                  <div key={t.id} className="summary-cell">
+                    <div>{t.label}</div>
+                    <div className="count">
+                      {count}/{CAPACITY}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="toolbar">
