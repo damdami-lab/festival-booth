@@ -130,7 +130,7 @@ export default function ApplyPage() {
         <div className="header-title">
           <img src="/logo.png" alt="학교 로고" className="school-logo" />
           <div>
-            <div className="eyebrow">외국어 축제</div>
+            <div className="eyebrow">한영외국어고등학교 문화제</div>
             <h1>부스 체험 신청</h1>
             <p className="subtitle">
               타임마다 원하는 과의 부스를 하나씩 골라 신청할 수 있어요. (본인 과는 선택 불가, 타임별
