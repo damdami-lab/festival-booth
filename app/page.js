@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { DEPARTMENTS, DEPARTMENT_COLORS, TIME_SLOTS, getOwnDepartment } from '@/lib/departments';
+import { DEPARTMENTS, DEPARTMENT_COLORS, TIME_SLOTS, getOwnDepartment, getContrastTextColor } from '@/lib/departments';
 
 const CAPACITY = 25;
 
@@ -254,7 +254,10 @@ export default function ApplyPage() {
                           onClick={() => !disabled && toggleCell(dept, t.id)}
                           style={
                             selected
-                              ? { background: DEPARTMENT_COLORS[dept], color: '#fff' }
+                              ? {
+                                  background: DEPARTMENT_COLORS[dept],
+                                  color: getContrastTextColor(DEPARTMENT_COLORS[dept]),
+                                }
                               : undefined
                           }
                         >
@@ -262,7 +265,11 @@ export default function ApplyPage() {
                           {!isOwn && (
                             <span
                               className="slot-count"
-                              style={selected ? { color: '#fff' } : undefined}
+                              style={
+                                selected
+                                  ? { color: getContrastTextColor(DEPARTMENT_COLORS[dept]) }
+                                  : undefined
+                              }
                             >
                               {count}/{CAPACITY}
                             </span>
