@@ -10,10 +10,13 @@ export async function POST(request) {
   }
 
   const admin = getSupabaseAdmin();
-  const { error } = await admin.from('applications').delete().eq('id', id);
+  const { error, data } = await admin.from('applications').delete().eq('id', id).select('id');
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  if (!data || data.length === 0) {
+    return NextResponse.json({ error: '삭제된 행이 없습니다. (권한 또는 id를 확인해주세요)' }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
