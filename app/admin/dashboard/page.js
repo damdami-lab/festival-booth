@@ -7,13 +7,6 @@ import { DEPARTMENTS, DEPARTMENT_COLORS, TIME_SLOTS } from '@/lib/departments';
 
 const CAPACITY = 25;
 
-const SORT_OPTIONS = [
-  { value: 'created_desc', label: '신청시각 최신순' },
-  { value: 'created_asc', label: '신청시각 오래된순' },
-  { value: 'name_asc', label: '이름순' },
-  { value: 'class_number_asc', label: '반/번호순' },
-];
-
 export default function AdminDashboard() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +14,6 @@ export default function AdminDashboard() {
   const [deptFilter, setDeptFilter] = useState('');
   const [slotFilter, setSlotFilter] = useState('');
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('created_desc');
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const router = useRouter();
 
@@ -65,19 +57,9 @@ export default function AdminDashboard() {
     return map;
   }, [applications]);
 
-  const stats = useMemo(() => {
-    const uniqueStudents = new Set(
-      applications.map((a) => `${a.student_class}_${a.student_number}`)
-    );
-    return {
-      totalCount: applications.length,
-      studentCount: uniqueStudents.size,
-    };
-  }, [applications]);
-
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let result = applications.filter((a) => {
+    return applications.filter((a) => {
       if (deptFilter && a.department !== deptFilter) return false;
       if (slotFilter && String(a.time_slot) !== slotFilter) return false;
       if (q) {
@@ -89,23 +71,7 @@ export default function AdminDashboard() {
       }
       return true;
     });
-
-    result = [...result].sort((a, b) => {
-      switch (sortBy) {
-        case 'created_asc':
-          return new Date(a.created_at) - new Date(b.created_at);
-        case 'name_asc':
-          return a.student_name.localeCompare(b.student_name, 'ko');
-        case 'class_number_asc':
-          return a.student_class - b.student_class || a.student_number - b.student_number;
-        case 'created_desc':
-        default:
-          return new Date(b.created_at) - new Date(a.created_at);
-      }
-    });
-
-    return result;
-  }, [applications, deptFilter, slotFilter, search, sortBy]);
+  }, [applications, deptFilter, slotFilter, search]);
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((a) => selectedIds.has(a.id));
 
@@ -236,21 +202,6 @@ export default function AdminDashboard() {
 
       {error && <div className="msg error">{error}</div>}
 
-      <div className="stats-bar">
-        <div className="stat">
-          <div className="stat-value">{stats.totalCount}</div>
-          <div className="stat-label">총 신청 건수</div>
-        </div>
-        <div className="stat">
-          <div className="stat-value">{stats.studentCount}</div>
-          <div className="stat-label">참여 학생 수</div>
-        </div>
-        <div className="stat">
-          <div className="stat-value">{filtered.length}</div>
-          <div className="stat-label">현재 필터 결과</div>
-        </div>
-      </div>
-
       <div className="summary-list">
         {DEPARTMENTS.map((d) => (
           <div key={d} className="summary-row">
@@ -302,40 +253,6 @@ export default function AdminDashboard() {
               minWidth: 160,
             }}
           />
-          <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
-            <option value="">전체 과</option>
-            {DEPARTMENTS.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-          <select value={slotFilter} onChange={(e) => setSlotFilter(e.target.value)}>
-            <option value="">전체 타임</option>
-            {TIME_SLOTS.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          {(deptFilter || slotFilter) && (
-            <button
-              className="secondary"
-              onClick={() => {
-                setDeptFilter('');
-                setSlotFilter('');
-              }}
-            >
-              필터 해제 ({deptFilter || '전체 과'} · {slotFilter ? `${slotFilter}타임` : '전체 타임'})
-            </button>
-          )}
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {selectedIds.size > 0 && (
