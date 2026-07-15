@@ -43,8 +43,14 @@ export default function ApplyPage() {
 
   function toggleCell(department, timeSlotId) {
     if (department === ownDept) return;
-    const count = counts[`${department}_${timeSlotId}`] || 0;
     const alreadySelected = selections[timeSlotId] === department;
+
+    const usedInOtherSlot = Object.entries(selections).some(
+      ([slot, dept]) => dept === department && Number(slot) !== timeSlotId
+    );
+    if (!alreadySelected && usedInOtherSlot) return;
+
+    const count = counts[`${department}_${timeSlotId}`] || 0;
 
     if (!alreadySelected && count >= CAPACITY) return;
 
@@ -245,7 +251,10 @@ export default function ApplyPage() {
                       const count = counts[`${dept}_${t.id}`] || 0;
                       const full = count >= CAPACITY;
                       const selected = selections[t.id] === dept;
-                      const disabled = isOwn || (full && !selected);
+                      const usedInOtherSlot = Object.entries(selections).some(
+                        ([slot, d]) => d === dept && Number(slot) !== t.id
+                      );
+                      const disabled = isOwn || (full && !selected) || (usedInOtherSlot && !selected);
 
                       return (
                         <td
@@ -263,7 +272,15 @@ export default function ApplyPage() {
                               : undefined
                           }
                         >
-                          {selected ? '선택됨' : isOwn ? '-' : full ? '마감' : '선택'}
+                          {selected
+                            ? '선택됨'
+                            : isOwn
+                            ? '-'
+                            : usedInOtherSlot
+                            ? '중복불가'
+                            : full
+                            ? '마감'
+                            : '선택'}
                           {!isOwn && (
                             <span
                               className="slot-count"
