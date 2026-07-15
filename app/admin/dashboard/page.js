@@ -2,9 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import * as XLSX from 'xlsx';
 import { DEPARTMENTS, DEPARTMENT_COLORS, TIME_SLOTS } from '@/lib/departments';
 
 const CAPACITY = 25;
+
+const SORT_OPTIONS = [
+  { value: 'created_desc', label: '신청시각 최신순' },
+  { value: 'created_asc', label: '신청시각 오래된순' },
+  { value: 'name_asc', label: '이름순' },
+  { value: 'class_number_asc', label: '반/번호순' },
+];
 
 export default function AdminDashboard() {
   const [applications, setApplications] = useState([]);
@@ -12,6 +20,8 @@ export default function AdminDashboard() {
   const [error, setError] = useState(null);
   const [deptFilter, setDeptFilter] = useState('');
   const [slotFilter, setSlotFilter] = useState('');
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('created_desc');
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const router = useRouter();
 
@@ -55,13 +65,47 @@ export default function AdminDashboard() {
     return map;
   }, [applications]);
 
+  const stats = useMemo(() => {
+    const uniqueStudents = new Set(
+      applications.map((a) => `${a.student_class}_${a.student_number}`)
+    );
+    return {
+      totalCount: applications.length,
+      studentCount: uniqueStudents.size,
+    };
+  }, [applications]);
+
   const filtered = useMemo(() => {
-    return applications.filter((a) => {
+    const q = search.trim().toLowerCase();
+    let result = applications.filter((a) => {
       if (deptFilter && a.department !== deptFilter) return false;
       if (slotFilter && String(a.time_slot) !== slotFilter) return false;
+      if (q) {
+        const matchName = a.student_name?.toLowerCase().includes(q);
+        const matchClassNumber = `${a.student_class}반${a.student_number}번`.includes(q);
+        const matchNumbers =
+          String(a.student_class).includes(q) || String(a.student_number).includes(q);
+        if (!matchName && !matchClassNumber && !matchNumbers) return false;
+      }
       return true;
     });
-  }, [applications, deptFilter, slotFilter]);
+
+    result = [...result].sort((a, b) => {
+      switch (sortBy) {
+        case 'created_asc':
+          return new Date(a.created_at) - new Date(b.created_at);
+        case 'name_asc':
+          return a.student_name.localeCompare(b.student_name, 'ko');
+        case 'class_number_asc':
+          return a.student_class - b.student_class || a.student_number - b.student_number;
+        case 'created_desc':
+        default:
+          return new Date(b.created_at) - new Date(a.created_at);
+      }
+    });
+
+    return result;
+  }, [applications, deptFilter, slotFilter, search, sortBy]);
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((a) => selectedIds.has(a.id));
 
@@ -132,7 +176,7 @@ export default function AdminDashboard() {
     router.push('/admin');
   }
 
-  function exportCsv() {
+  function buildRows() {
     const header = ['이름', '반', '번호', '과', '타임', '신청시각'];
     const rows = filtered.map((a) => [
       a.student_name,
@@ -142,6 +186,11 @@ export default function AdminDashboard() {
       a.time_slot,
       new Date(a.created_at).toLocaleString('ko-KR'),
     ]);
+    return [header, ...rows];
+  }
+
+  function exportCsv() {
+    const [header, ...rows] = buildRows();
     const csv = [header, ...rows]
       .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
       .join('\n');
@@ -152,6 +201,22 @@ export default function AdminDashboard() {
     link.download = 'booth-applications.csv';
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  function exportXlsx() {
+    const rows = buildRows();
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    worksheet['!cols'] = [
+      { wch: 10 },
+      { wch: 6 },
+      { wch: 6 },
+      { wch: 12 },
+      { wch: 8 },
+      { wch: 20 },
+    ];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, '신청현황');
+    XLSX.writeFile(workbook, 'booth-applications.xlsx');
   }
 
   return (
@@ -170,6 +235,21 @@ export default function AdminDashboard() {
       </div>
 
       {error && <div className="msg error">{error}</div>}
+
+      <div className="stats-bar">
+        <div className="stat">
+          <div className="stat-value">{stats.totalCount}</div>
+          <div className="stat-label">총 신청 건수</div>
+        </div>
+        <div className="stat">
+          <div className="stat-value">{stats.studentCount}</div>
+          <div className="stat-label">참여 학생 수</div>
+        </div>
+        <div className="stat">
+          <div className="stat-value">{filtered.length}</div>
+          <div className="stat-label">현재 필터 결과</div>
+        </div>
+      </div>
 
       <div className="summary-list">
         {DEPARTMENTS.map((d) => (
@@ -196,6 +276,19 @@ export default function AdminDashboard() {
 
       <div className="toolbar">
         <div className="filters">
+          <input
+            type="text"
+            placeholder="이름/반/번호 검색"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              border: '1px solid #d9d6c9',
+              borderRadius: 8,
+              padding: '8px 10px',
+              fontSize: 13,
+              minWidth: 160,
+            }}
+          />
           <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
             <option value="">전체 과</option>
             {DEPARTMENTS.map((d) => (
@@ -212,8 +305,15 @@ export default function AdminDashboard() {
               </option>
             ))}
           </select>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {selectedIds.size > 0 && (
             <button className="secondary" onClick={handleDeleteSelected}>
               선택 삭제 ({selectedIds.size})
@@ -224,6 +324,9 @@ export default function AdminDashboard() {
           </button>
           <button className="secondary" onClick={exportCsv}>
             CSV 다운로드
+          </button>
+          <button className="secondary" onClick={exportXlsx}>
+            엑셀 다운로드
           </button>
         </div>
       </div>
