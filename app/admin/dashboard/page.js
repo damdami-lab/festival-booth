@@ -19,7 +19,7 @@ export default function AdminDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/list');
+      const res = await fetch('/api/admin/list', { cache: 'no-store' });
       if (res.status === 401) {
         router.push('/admin');
         return;
