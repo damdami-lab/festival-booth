@@ -44,6 +44,19 @@ input {
   flex-wrap: wrap;
 }
 
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.school-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .eyebrow {
   font-size: 13px;
   letter-spacing: 0.04em;
@@ -257,21 +270,65 @@ button.secondary {
   font-size: 13px;
 }
 
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 8px;
+.summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
+}
+
+.summary-row {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #e8e6dc;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.summary-dept {
+  flex: 0 0 96px;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  background: #f4f2ea;
+  border-left: 4px solid #1c1c1a;
+}
+
+.summary-slots {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 10px;
+  flex: 1;
 }
 
 .summary-cell {
   border: 1px solid #e8e6dc;
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 8px;
+  padding: 8px 10px;
   font-size: 12px;
+  text-align: center;
 }
 
 .summary-cell .count {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
+  margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+  .summary-row {
+    flex-direction: column;
+  }
+  .summary-dept {
+    flex: none;
+    border-left: none;
+    border-bottom: 4px solid #1c1c1a;
+  }
+  .summary-slots {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
