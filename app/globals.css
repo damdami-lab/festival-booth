@@ -9,8 +9,8 @@ body {
 }
 
 body {
-  background: #faf9f5;
-  color: #1c1c1a;
+  background: #f2f9f5;
+  color: #1c2b22;
   font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard', 'Malgun Gothic',
     sans-serif;
   line-height: 1.6;
@@ -60,7 +60,7 @@ input {
 .eyebrow {
   font-size: 13px;
   letter-spacing: 0.04em;
-  color: #7a7a72;
+  color: #5c8a72;
   margin-bottom: 6px;
 }
 
@@ -72,13 +72,13 @@ h1 {
 
 .subtitle {
   font-size: 14px;
-  color: #5c5c54;
+  color: #4f6b5c;
   margin: 0;
 }
 
 .card {
   background: #ffffff;
-  border: 1px solid #e8e6dc;
+  border: 1px solid #d9ede2;
   border-radius: 14px;
   padding: 20px;
   margin-bottom: 20px;
@@ -99,11 +99,11 @@ h1 {
 
 .field label {
   font-size: 13px;
-  color: #5c5c54;
+  color: #4f6b5c;
 }
 
 .field input {
-  border: 1px solid #d9d6c9;
+  border: 1px solid #cfe6d8;
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 15px;
@@ -111,7 +111,7 @@ h1 {
 }
 
 .field input:focus {
-  outline: 2px solid #35558c;
+  outline: 2px solid #1f7a5c;
   outline-offset: 1px;
 }
 
@@ -123,14 +123,14 @@ table.matrix {
 
 table.matrix th,
 table.matrix td {
-  border: 1px solid #e8e6dc;
+  border: 1px solid #d9ede2;
   padding: 8px 6px;
   text-align: center;
   vertical-align: middle;
 }
 
 table.matrix th {
-  background: #f4f2ea;
+  background: #eaf6ef;
   font-weight: 500;
   font-size: 12px;
 }
@@ -164,17 +164,17 @@ table.matrix th {
 .slot-count {
   display: block;
   font-size: 11px;
-  color: #8a8a80;
+  color: #7c9689;
   margin-top: 2px;
 }
 
 .own-dept-row {
-  background: #f4f2ea;
-  color: #a8a69c;
+  background: #eaf6ef;
+  color: #9fb8a9;
 }
 
 button.primary {
-  background: #1c1c1a;
+  background: #1f7a5c;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -184,12 +184,12 @@ button.primary {
 }
 
 button.primary:disabled {
-  background: #b9b8ae;
+  background: #b9d9c8;
 }
 
 button.secondary {
   background: transparent;
-  border: 1px solid #d9d6c9;
+  border: 1px solid #cfe6d8;
   border-radius: 8px;
   padding: 10px 16px;
   font-size: 14px;
@@ -197,7 +197,7 @@ button.secondary {
 
 .link-button {
   display: inline-block;
-  background: #1c1c1a;
+  background: #1f7a5c;
   color: #fff !important;
   border-radius: 8px;
   padding: 10px 16px;
@@ -209,8 +209,8 @@ button.secondary {
 
 .link-button.outline {
   background: transparent;
-  border: 1px solid #d9d6c9;
-  color: #1c1c1a !important;
+  border: 1px solid #cfe6d8;
+  color: #1c2b22 !important;
 }
 
 .msg {
@@ -226,13 +226,13 @@ button.secondary {
 }
 
 .msg.success {
-  background: #e7f1ea;
+  background: #e2f3e8;
   color: #1f6b45;
 }
 
 .footer-note {
   font-size: 12px;
-  color: #9a998f;
+  color: #7c9689;
   margin-top: 24px;
 }
 
@@ -244,7 +244,7 @@ button.secondary {
 
 .admin-table th,
 .admin-table td {
-  border-bottom: 1px solid #e8e6dc;
+  border-bottom: 1px solid #d9ede2;
   padding: 8px 10px;
   text-align: left;
 }
@@ -265,7 +265,7 @@ button.secondary {
 }
 
 .filters select {
-  border: 1px solid #d9d6c9;
+  border: 1px solid #cfe6d8;
   border-radius: 8px;
   padding: 8px 10px;
   font-size: 13px;
@@ -281,7 +281,7 @@ button.secondary {
 .summary-row {
   display: flex;
   align-items: stretch;
-  border: 1px solid #e8e6dc;
+  border: 1px solid #d9ede2;
   border-radius: 10px;
   overflow: hidden;
   background: #fff;
@@ -294,8 +294,8 @@ button.secondary {
   padding: 10px 12px;
   font-weight: 600;
   font-size: 13px;
-  background: #f4f2ea;
-  border-left: 4px solid #1c1c1a;
+  background: #eaf6ef;
+  border-left: 4px solid #1f7a5c;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
@@ -308,7 +308,7 @@ button.secondary {
 }
 
 .summary-cell {
-  border: 1px solid #e8e6dc;
+  border: 1px solid #d9ede2;
   border-radius: 8px;
   padding: 8px 10px;
   font-size: 12px;
@@ -318,12 +318,12 @@ button.secondary {
 }
 
 .summary-cell:hover {
-  border-color: #b9b8ae;
+  border-color: #9fcdb3;
 }
 
 .summary-cell.active {
-  border-color: #1c1c1a;
-  background: #1c1c1a;
+  border-color: #1f7a5c;
+  background: #1f7a5c;
   color: #fff;
 }
 
@@ -340,7 +340,7 @@ button.secondary {
   .summary-dept {
     flex: none;
     border-left: none;
-    border-bottom: 4px solid #1c1c1a;
+    border-bottom: 4px solid #1f7a5c;
   }
   .summary-slots {
     grid-template-columns: repeat(2, 1fr);
