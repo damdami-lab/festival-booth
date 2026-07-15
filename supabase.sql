@@ -19,7 +19,11 @@ create or replace function check_capacity()
 returns trigger as $$
 declare
   current_count int;
+  lock_key bigint;
 begin
+  lock_key := hashtextextended(new.department || '_' || new.time_slot, 0);
+  perform pg_advisory_xact_lock(lock_key);
+
   select count(*) into current_count
   from applications
   where department = new.department and time_slot = new.time_slot;
