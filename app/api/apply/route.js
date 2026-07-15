@@ -37,6 +37,17 @@ export async function POST(request) {
     return NextResponse.json({ error: '번호를 다시 확인해주세요.' }, { status: 400 });
   }
 
+  const seenDepartments = new Set();
+  for (const sel of selections) {
+    if (seenDepartments.has(sel.department)) {
+      return NextResponse.json(
+        { error: '같은 과는 타임이 달라도 한 번만 신청할 수 있습니다.' },
+        { status: 400 }
+      );
+    }
+    seenDepartments.add(sel.department);
+  }
+
   const ownDept = getOwnDepartment(studentClass);
   const admin = getSupabaseAdmin();
   const passwordHash = await hashApplicationPassword(password, studentClass, studentNumber);
@@ -89,6 +100,8 @@ export async function POST(request) {
       let message = '신청에 실패했습니다. 다시 시도해주세요.';
       if (error.message?.includes('정원')) {
         message = '정원이 마감되었습니다.';
+      } else if (error.message?.includes('applications_class_number_department_key')) {
+        message = '이미 같은 과에 신청한 내역이 있습니다. (같은 과는 타임이 달라도 한 번만 신청 가능)';
       } else if (error.code === '23505') {
         message = '이미 같은 타임에 신청한 내역이 있습니다.';
       } else if (error.message?.includes('본인 과')) {
