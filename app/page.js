@@ -127,13 +127,16 @@ export default function ApplyPage() {
   return (
     <main className="page">
       <div className="header">
-        <div>
-          <div className="eyebrow">외국어 축제</div>
-          <h1>부스 체험 신청</h1>
-          <p className="subtitle">
-            타임마다 원하는 과의 부스를 하나씩 골라 신청할 수 있어요. (본인 과는 선택 불가, 타임별
-            정원 {CAPACITY}명)
-          </p>
+        <div className="header-title">
+          <img src="/logo.png" alt="학교 로고" className="school-logo" />
+          <div>
+            <div className="eyebrow">외국어 축제</div>
+            <h1>부스 체험 신청</h1>
+            <p className="subtitle">
+              타임마다 원하는 과의 부스를 하나씩 골라 신청할 수 있어요. (본인 과는 선택 불가, 타임별
+              정원 {CAPACITY}명)
+            </p>
+          </div>
         </div>
         <a href="/my-applications" className="link-button">
           내 신청 확인·취소
