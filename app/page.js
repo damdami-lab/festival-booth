@@ -274,7 +274,7 @@ export default function ApplyPage() {
       </form>
 
       <p className="footer-note">
-        문의사항이 있으면 담당 선생님 또는 축제 준비 위원회로 연락해주세요.
+        문의사항이 있으면 담당 선생님 또는 학생회로 연락해주세요.
       </p>
     </main>
   );
