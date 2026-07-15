@@ -189,7 +189,7 @@ export default function ApplyPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="4자 이상 (신청 조회/취소 시 필요)"
+                placeholder="숫자 4자 이상 (신청 조회/취소 시 필요)"
               />
             </div>
           </div>
