@@ -19,7 +19,7 @@ export default function ApplyPage() {
 
   async function loadCounts() {
     try {
-      const res = await fetch('/api/counts');
+      const res = await fetch('/api/counts', { cache: 'no-store' });
       const data = await res.json();
       const map = {};
       (data.counts || []).forEach((c) => {
