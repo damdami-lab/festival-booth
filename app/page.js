@@ -9,6 +9,7 @@ export default function ApplyPage() {
   const [studentName, setStudentName] = useState('');
   const [studentClass, setStudentClass] = useState('');
   const [studentNumber, setStudentNumber] = useState('');
+  const [password, setPassword] = useState('');
   const [selections, setSelections] = useState({}); // { [time_slot]: department }
   const [counts, setCounts] = useState({}); // { "department_time_slot": count }
   const [submitting, setSubmitting] = useState(false);
@@ -56,8 +57,13 @@ export default function ApplyPage() {
     e.preventDefault();
     setResultMsg(null);
 
-    if (!studentName.trim() || !studentClass || !studentNumber) {
-      setResultMsg({ type: 'error', text: '이름, 반, 번호를 모두 입력해주세요.' });
+    if (!studentName.trim() || !studentClass || !studentNumber || !password) {
+      setResultMsg({ type: 'error', text: '이름, 반, 번호, 비밀번호를 모두 입력해주세요.' });
+      return;
+    }
+
+    if (password.length < 4) {
+      setResultMsg({ type: 'error', text: '비밀번호는 4자 이상으로 입력해주세요.' });
       return;
     }
 
@@ -80,6 +86,7 @@ export default function ApplyPage() {
           student_name: studentName,
           student_class: studentClass,
           student_number: studentNumber,
+          password,
           selections: selectionList,
         }),
       });
@@ -166,6 +173,21 @@ export default function ApplyPage() {
               />
             </div>
           </div>
+          <div className="field-row">
+            <div className="field" style={{ flex: 1 }}>
+              <label htmlFor="password">비밀번호</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="4자 이상 (신청 조회/취소 시 필요)"
+              />
+            </div>
+          </div>
+          <p className="footer-note" style={{ marginTop: 0 }}>
+            나중에 신청 내역을 조회하거나 취소할 때 필요하니 잊지 않게 기억해두세요.
+          </p>
           {ownDept && (
             <p className="footer-note" style={{ marginTop: 0 }}>
               본인 소속: <strong>{ownDept}</strong> (선택 목록에서 회색으로 표시돼요)
@@ -243,6 +265,10 @@ export default function ApplyPage() {
         </button>
       </form>
 
+      <p className="footer-note">
+        이미 신청한 내역을 확인하거나 취소하고 싶다면{' '}
+        <a href="/my-applications">여기를 눌러 내 신청 조회/취소</a>로 이동하세요.
+      </p>
       <p className="footer-note">
         문의사항이 있으면 담당 선생님 또는 축제 준비 위원회로 연락해주세요.
       </p>
