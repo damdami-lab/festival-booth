@@ -37,6 +37,11 @@ input {
 
 .header {
   margin-bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .eyebrow {
@@ -176,6 +181,24 @@ button.secondary {
   font-size: 14px;
 }
 
+.link-button {
+  display: inline-block;
+  background: #1c1c1a;
+  color: #fff !important;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.link-button.outline {
+  background: transparent;
+  border: 1px solid #d9d6c9;
+  color: #1c1c1a !important;
+}
+
 .msg {
   padding: 12px 14px;
   border-radius: 8px;
@@ -190,65 +213,3 @@ button.secondary {
 
 .msg.success {
   background: #e7f1ea;
-  color: #1f6b45;
-}
-
-.footer-note {
-  font-size: 12px;
-  color: #9a998f;
-  margin-top: 24px;
-}
-
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.admin-table th,
-.admin-table td {
-  border-bottom: 1px solid #e8e6dc;
-  padding: 8px 10px;
-  text-align: left;
-}
-
-.toolbar {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-  justify-content: space-between;
-}
-
-.filters {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.filters select {
-  border: 1px solid #d9d6c9;
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 13px;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.summary-cell {
-  border: 1px solid #e8e6dc;
-  border-radius: 10px;
-  padding: 10px;
-  font-size: 12px;
-}
-
-.summary-cell .count {
-  font-size: 18px;
-  font-weight: 700;
-}
