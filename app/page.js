@@ -17,6 +17,12 @@ export default function ApplyPage() {
 
   const ownDept = useMemo(() => getOwnDepartment(studentClass), [studentClass]);
 
+  const allFull = useMemo(() => {
+    return DEPARTMENTS.every((d) =>
+      TIME_SLOTS.every((t) => (counts[`${d}_${t.id}`] || 0) >= CAPACITY)
+    );
+  }, [counts]);
+
   async function loadCounts() {
     try {
       const res = await fetch('/api/counts', { cache: 'no-store' });
@@ -144,6 +150,11 @@ export default function ApplyPage() {
       </div>
 
       <form onSubmit={handleSubmit}>
+        {allFull && (
+          <div className="msg error">
+            모든 타임의 정원이 마감되어 더 이상 신청을 받지 않습니다.
+          </div>
+        )}
         <div className="card">
           <div className="field-row">
             <div className="field" style={{ flex: 2 }}>
@@ -189,7 +200,7 @@ export default function ApplyPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="숫자 4자 이상 (신청 조회/취소 시 필요)"
+                placeholder="4자 이상 (신청 조회/취소 시 필요)"
               />
             </div>
           </div>
@@ -268,13 +279,13 @@ export default function ApplyPage() {
 
         {resultMsg && <div className={`msg ${resultMsg.type}`}>{resultMsg.text}</div>}
 
-        <button type="submit" className="primary" disabled={submitting}>
-          {submitting ? '신청 중...' : '신청하기'}
+        <button type="submit" className="primary" disabled={submitting || allFull}>
+          {allFull ? '신청 마감' : submitting ? '신청 중...' : '신청하기'}
         </button>
       </form>
 
       <p className="footer-note">
-        문의사항이 있으면 담당 선생님 또는 학생회로 연락해주세요.
+        문의사항이 있으면 담당 선생님 또는 축제 준비 위원회로 연락해주세요.
       </p>
     </main>
   );
