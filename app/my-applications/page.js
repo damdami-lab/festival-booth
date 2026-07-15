@@ -71,9 +71,14 @@ export default function MyApplicationsPage() {
   return (
     <main className="page" style={{ maxWidth: 640 }}>
       <div className="header">
-        <div className="eyebrow">외국어 축제</div>
-        <h1>내 신청 조회 / 취소</h1>
-        <p className="subtitle">신청할 때 입력한 반, 번호, 비밀번호로 본인 신청 내역을 확인할 수 있어요.</p>
+        <div>
+          <div className="eyebrow">외국어 축제</div>
+          <h1>내 신청 조회 / 취소</h1>
+          <p className="subtitle">신청할 때 입력한 반, 번호, 비밀번호로 본인 신청 내역을 확인할 수 있어요.</p>
+        </div>
+        <a href="/" className="link-button outline">
+          ← 신청 페이지로
+        </a>
       </div>
 
       <form onSubmit={handleLookup}>
@@ -155,10 +160,6 @@ export default function MyApplicationsPage() {
           )}
         </div>
       )}
-
-      <p className="footer-note">
-        <a href="/">← 신청 페이지로 돌아가기</a>
-      </p>
     </main>
   );
 }
