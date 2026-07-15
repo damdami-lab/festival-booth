@@ -64,9 +64,11 @@ export default function AdminDashboard() {
       if (slotFilter && String(a.time_slot) !== slotFilter) return false;
       if (q) {
         const matchName = a.student_name?.toLowerCase().includes(q);
-        const matchClassNumber = `${a.student_class}반${a.student_number}번`.includes(q);
+        const matchClassNumber = `${a.student_grade}학년${a.student_class}반${a.student_number}번`.includes(q);
         const matchNumbers =
-          String(a.student_class).includes(q) || String(a.student_number).includes(q);
+          String(a.student_grade).includes(q) ||
+          String(a.student_class).includes(q) ||
+          String(a.student_number).includes(q);
         if (!matchName && !matchClassNumber && !matchNumbers) return false;
       }
       return true;
@@ -143,9 +145,10 @@ export default function AdminDashboard() {
   }
 
   function buildRows() {
-    const header = ['이름', '반', '번호', '과', '타임', '신청시각'];
+    const header = ['이름', '학년', '반', '번호', '과', '타임', '신청시각'];
     const rows = filtered.map((a) => [
       a.student_name,
+      a.student_grade,
       a.student_class,
       a.student_number,
       a.department,
@@ -174,6 +177,7 @@ export default function AdminDashboard() {
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
     worksheet['!cols'] = [
       { wch: 10 },
+      { wch: 6 },
       { wch: 6 },
       { wch: 6 },
       { wch: 12 },
@@ -287,6 +291,7 @@ export default function AdminDashboard() {
                 />
               </th>
               <th>이름</th>
+              <th>학년</th>
               <th>반</th>
               <th>번호</th>
               <th>과</th>
@@ -307,6 +312,7 @@ export default function AdminDashboard() {
                   />
                 </td>
                 <td>{a.student_name}</td>
+                <td>{a.student_grade}</td>
                 <td>{a.student_class}</td>
                 <td>{a.student_number}</td>
                 <td>{a.department}</td>
@@ -321,7 +327,7 @@ export default function AdminDashboard() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', color: '#9a998f', padding: '20px 0' }}>
+                <td colSpan={9} style={{ textAlign: 'center', color: '#9a998f', padding: '20px 0' }}>
                   신청 내역이 없습니다.
                 </td>
               </tr>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 export default function MyApplicationsPage() {
+  const [studentGrade, setStudentGrade] = useState('');
   const [studentClass, setStudentClass] = useState('');
   const [studentNumber, setStudentNumber] = useState('');
   const [password, setPassword] = useState('');
@@ -15,8 +16,8 @@ export default function MyApplicationsPage() {
     setError(null);
     setApplications(null);
 
-    if (!studentClass || !studentNumber || !password) {
-      setError('반, 번호, 비밀번호를 모두 입력해주세요.');
+    if (!studentGrade || !studentClass || !studentNumber || !password) {
+      setError('학년, 반, 번호, 비밀번호를 모두 입력해주세요.');
       return;
     }
 
@@ -26,6 +27,7 @@ export default function MyApplicationsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          student_grade: studentGrade,
           student_class: studentClass,
           student_number: studentNumber,
           password,
@@ -52,6 +54,7 @@ export default function MyApplicationsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id,
+          student_grade: studentGrade,
           student_class: studentClass,
           student_number: studentNumber,
           password,
@@ -84,6 +87,18 @@ export default function MyApplicationsPage() {
       <form onSubmit={handleLookup}>
         <div className="card">
           <div className="field-row">
+            <div className="field" style={{ flex: 1 }}>
+              <label htmlFor="grade">학년</label>
+              <input
+                id="grade"
+                type="number"
+                min="1"
+                max="3"
+                value={studentGrade}
+                onChange={(e) => setStudentGrade(e.target.value)}
+                placeholder="1~3"
+              />
+            </div>
             <div className="field" style={{ flex: 1 }}>
               <label htmlFor="class">반</label>
               <input

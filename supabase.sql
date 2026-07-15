@@ -6,24 +6,68 @@ create extension if not exists pgcrypto;
 create table if not exists applications (
   id uuid primary key default gen_random_uuid(),
   student_name text not null,
+  student_grade int not null check (student_grade between 1 and 3),
   student_class int not null check (student_class between 1 and 10),
   student_number int not null check (student_number between 1 and 40),
   department text not null check (department in ('중국어과','일본어과','독일어과','프랑스어과','스페인어과')),
   time_slot int not null check (time_slot between 1 and 4),
   created_at timestamptz not null default now(),
   password_hash text,
-  unique (student_class, student_number, time_slot)
+  unique (student_grade, student_class, student_number, time_slot)
 );
 
--- 같은 학생(반+번호)이 같은 과에 서로 다른 타임으로 중복 신청하는 것을 막는 제약조건
+-- ⬇⬇ 이미 배포되어 있던 사이트(학년 칸 추가 전)에 이 스크립트를 다시 실행할 때를 위한 마이그레이션.
+-- 새로 처음 만드는 프로젝트라면 아래 블록들은 그냥 조용히 넘어가고(이미 위에서 다 반영됨), 문제 없어요.
+
+-- 1) student_grade 컬럼이 없으면 추가 (기존 데이터는 임시로 1학년 처리 후 관리자 페이지에서 확인)
+alter table applications add column if not exists student_grade int not null default 1;
+
 do $$
 begin
   if not exists (
+    select 1 from pg_constraint where conname = 'applications_student_grade_check'
+  ) then
+    alter table applications
+      add constraint applications_student_grade_check
+      check (student_grade between 1 and 3);
+  end if;
+end $$;
+
+alter table applications alter column student_grade drop default;
+
+-- 2) 기존 (반, 번호, 타임) 유일성 제약을 (학년, 반, 번호, 타임)으로 교체
+do $$
+begin
+  if exists (
+    select 1 from pg_constraint where conname = 'applications_student_class_student_number_time_slot_key'
+  ) then
+    alter table applications
+      drop constraint applications_student_class_student_number_time_slot_key;
+  end if;
+  if not exists (
+    select 1 from pg_constraint where conname = 'applications_grade_class_number_time_key'
+  ) then
+    alter table applications
+      add constraint applications_grade_class_number_time_key
+      unique (student_grade, student_class, student_number, time_slot);
+  end if;
+end $$;
+
+-- 같은 학생(학년+반+번호)이 같은 과에 서로 다른 타임으로 중복 신청하는 것을 막는 제약조건
+do $$
+begin
+  if exists (
     select 1 from pg_constraint where conname = 'applications_class_number_department_key'
   ) then
     alter table applications
-      add constraint applications_class_number_department_key
-      unique (student_class, student_number, department);
+      drop constraint applications_class_number_department_key;
+  end if;
+  if not exists (
+    select 1 from pg_constraint where conname = 'applications_grade_class_number_department_key'
+  ) then
+    alter table applications
+      add constraint applications_grade_class_number_department_key
+      unique (student_grade, student_class, student_number, department);
   end if;
 end $$;
 

@@ -7,6 +7,7 @@ const CAPACITY = 25;
 
 export default function ApplyPage() {
   const [studentName, setStudentName] = useState('');
+  const [studentGrade, setStudentGrade] = useState('');
   const [studentClass, setStudentClass] = useState('');
   const [studentNumber, setStudentNumber] = useState('');
   const [password, setPassword] = useState('');
@@ -69,8 +70,8 @@ export default function ApplyPage() {
     e.preventDefault();
     setResultMsg(null);
 
-    if (!studentName.trim() || !studentClass || !studentNumber || !password) {
-      setResultMsg({ type: 'error', text: '이름, 반, 번호, 비밀번호를 모두 입력해주세요.' });
+    if (!studentName.trim() || !studentGrade || !studentClass || !studentNumber || !password) {
+      setResultMsg({ type: 'error', text: '이름, 학년, 반, 번호, 비밀번호를 모두 입력해주세요.' });
       return;
     }
 
@@ -96,6 +97,7 @@ export default function ApplyPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           student_name: studentName,
+          student_grade: studentGrade,
           student_class: studentClass,
           student_number: studentNumber,
           password,
@@ -171,6 +173,18 @@ export default function ApplyPage() {
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
                 placeholder="홍길동"
+              />
+            </div>
+            <div className="field" style={{ flex: 1 }}>
+              <label htmlFor="grade">학년</label>
+              <input
+                id="grade"
+                type="number"
+                min="1"
+                max="3"
+                value={studentGrade}
+                onChange={(e) => setStudentGrade(e.target.value)}
+                placeholder="1~3"
               />
             </div>
             <div className="field" style={{ flex: 1 }}>

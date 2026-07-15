@@ -10,10 +10,11 @@ export async function POST(request) {
     return NextResponse.json({ error: '잘못된 요청입니다.' }, { status: 400 });
   }
 
-  const { student_name, student_class, student_number, password, selections } = body;
+  const { student_name, student_grade, student_class, student_number, password, selections } = body;
 
   if (
     !student_name ||
+    !student_grade ||
     !student_class ||
     !student_number ||
     !password ||
@@ -27,9 +28,13 @@ export async function POST(request) {
     return NextResponse.json({ error: '비밀번호는 4자 이상으로 입력해주세요.' }, { status: 400 });
   }
 
+  const studentGrade = Number(student_grade);
   const studentClass = Number(student_class);
   const studentNumber = Number(student_number);
 
+  if (!Number.isInteger(studentGrade) || studentGrade < 1 || studentGrade > 3) {
+    return NextResponse.json({ error: '학년은 1~3 사이 숫자로 입력해주세요.' }, { status: 400 });
+  }
   if (!Number.isInteger(studentClass) || studentClass < 1 || studentClass > 10) {
     return NextResponse.json({ error: '반은 1~10 사이 숫자로 입력해주세요.' }, { status: 400 });
   }
@@ -50,13 +55,14 @@ export async function POST(request) {
 
   const ownDept = getOwnDepartment(studentClass);
   const admin = getSupabaseAdmin();
-  const passwordHash = await hashApplicationPassword(password, studentClass, studentNumber);
+  const passwordHash = await hashApplicationPassword(password, studentGrade, studentClass, studentNumber);
 
-  // 이 학생(반+번호)이 이전에 신청한 내역이 있으면, 그때 설정한 비밀번호와 같은지 확인.
-  // 다르면 전체 요청을 거부한다 (다른 사람이 남의 반/번호로 신청하는 것을 막기 위함).
+  // 이 학생(학년+반+번호)이 이전에 신청한 내역이 있으면, 그때 설정한 비밀번호와 같은지 확인.
+  // 다르면 전체 요청을 거부한다 (다른 사람이 남의 학년/반/번호로 신청하는 것을 막기 위함).
   const { data: existing, error: existingError } = await admin
     .from('applications')
     .select('password_hash')
+    .eq('student_grade', studentGrade)
     .eq('student_class', studentClass)
     .eq('student_number', studentNumber)
     .limit(1);
@@ -67,7 +73,7 @@ export async function POST(request) {
 
   if (existing && existing.length > 0 && existing[0].password_hash !== passwordHash) {
     return NextResponse.json(
-      { error: '이미 이 반/번호로 신청한 내역이 있어요. 처음 신청할 때 설정한 비밀번호를 입력해주세요.' },
+      { error: '이미 이 학년/반/번호로 신청한 내역이 있어요. 처음 신청할 때 설정한 비밀번호를 입력해주세요.' },
       { status: 400 }
     );
   }
@@ -89,6 +95,7 @@ export async function POST(request) {
 
     const { error } = await admin.from('applications').insert({
       student_name: String(student_name).trim(),
+      student_grade: studentGrade,
       student_class: studentClass,
       student_number: studentNumber,
       department,
@@ -100,7 +107,7 @@ export async function POST(request) {
       let message = '신청에 실패했습니다. 다시 시도해주세요.';
       if (error.message?.includes('정원')) {
         message = '정원이 마감되었습니다.';
-      } else if (error.message?.includes('applications_class_number_department_key')) {
+      } else if (error.message?.includes('applications_grade_class_number_department_key')) {
         message = '이미 같은 과에 신청한 내역이 있습니다. (같은 과는 타임이 달라도 한 번만 신청 가능)';
       } else if (error.code === '23505') {
         message = '이미 같은 타임에 신청한 내역이 있습니다.';
