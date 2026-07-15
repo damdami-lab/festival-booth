@@ -15,6 +15,18 @@ create table if not exists applications (
   unique (student_class, student_number, time_slot)
 );
 
+-- 같은 학생(반+번호)이 같은 과에 서로 다른 타임으로 중복 신청하는 것을 막는 제약조건
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'applications_class_number_department_key'
+  ) then
+    alter table applications
+      add constraint applications_class_number_department_key
+      unique (student_class, student_number, department);
+  end if;
+end $$;
+
 -- 같은 타임에 정원(25명)을 넘으면 신청을 막는 트리거
 -- (advisory lock으로 동시 신청 race condition을 방지)
 create or replace function check_capacity()
