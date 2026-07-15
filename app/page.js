@@ -257,6 +257,8 @@ export default function ApplyPage() {
                               ? {
                                   background: DEPARTMENT_COLORS[dept],
                                   color: getContrastTextColor(DEPARTMENT_COLORS[dept]),
+                                  border: '2px solid #1c1c1a',
+                                  fontWeight: 600,
                                 }
                               : undefined
                           }
