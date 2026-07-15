@@ -338,6 +338,18 @@ button.secondary {
   padding: 8px 10px;
   font-size: 12px;
   text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.summary-cell:hover {
+  border-color: #b9b8ae;
+}
+
+.summary-cell.active {
+  border-color: #1c1c1a;
+  background: #1c1c1a;
+  color: #fff;
 }
 
 .summary-cell .count {
