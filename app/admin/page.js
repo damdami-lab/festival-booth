@@ -35,8 +35,13 @@ export default function AdminLoginPage() {
   return (
     <main className="page" style={{ maxWidth: 400 }}>
       <div className="header">
-        <div className="eyebrow">관리자</div>
-        <h1>로그인</h1>
+        <div className="header-title">
+          <img src="/logo.png" alt="학교 로고" className="school-logo" />
+          <div>
+            <div className="eyebrow">관리자</div>
+            <h1>로그인</h1>
+          </div>
+        </div>
       </div>
       <form onSubmit={handleSubmit} className="card">
         <div className="field" style={{ marginBottom: 16 }}>
