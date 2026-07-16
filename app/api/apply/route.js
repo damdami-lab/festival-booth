@@ -130,4 +130,14 @@ export async function POST(request) {
       } else if (error.message?.includes('본인 과')) {
         message = '본인 과 부스는 신청할 수 없습니다.';
       } else if (error.message?.includes('하나만 신청')) {
-        message = '한 학생 당 부스는 하나만 신청할 수
+        message = '한 학생 당 부스는 하나만 신청할 수 있습니다.';
+      }
+      results.push({ time_slot, department, ok: false, message });
+    } else {
+      results.push({ time_slot, department, ok: true });
+    }
+  }
+
+  const anySuccess = results.some((r) => r.ok);
+  return NextResponse.json({ ok: anySuccess, results });
+}
