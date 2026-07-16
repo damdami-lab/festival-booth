@@ -2,8 +2,22 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { getOwnDepartment } from '@/lib/departments';
 import { hashApplicationPassword } from '@/lib/hash';
+import { isApplicationOpen, formatKoreanDateTime, APPLICATION_OPEN, APPLICATION_CLOSE } from '@/lib/applicationWindow';
 
 export async function POST(request) {
+  // 신청 기간이 아니면 여기서 바로 막는다. (화면 버튼을 비활성화해도
+  // 개발자도구 등으로 API를 직접 호출할 수 있기 때문에, 진짜 방어는 서버에서 해야 함)
+  if (!isApplicationOpen()) {
+    return NextResponse.json(
+      {
+        error: `지금은 신청 기간이 아닙니다. 신청 가능 시간: ${formatKoreanDateTime(
+          APPLICATION_OPEN
+        )} ~ ${formatKoreanDateTime(APPLICATION_CLOSE)}`,
+      },
+      { status: 403 }
+    );
+  }
+
   const body = await request.json().catch(() => null);
 
   if (!body) {
