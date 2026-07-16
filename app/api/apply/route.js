@@ -64,8 +64,7 @@ export async function POST(request) {
     .select('password_hash')
     .eq('student_grade', studentGrade)
     .eq('student_class', studentClass)
-    .eq('student_number', studentNumber)
-    .limit(1);
+    .eq('student_number', studentNumber);
 
   if (existingError) {
     return NextResponse.json({ error: '신청 확인 중 오류가 발생했습니다.' }, { status: 500 });
@@ -74,6 +73,23 @@ export async function POST(request) {
   if (existing && existing.length > 0 && existing[0].password_hash !== passwordHash) {
     return NextResponse.json(
       { error: '이미 이 학년/반/번호로 신청한 내역이 있어요. 처음 신청할 때 설정한 비밀번호를 입력해주세요.' },
+      { status: 400 }
+    );
+  }
+
+  const existingCount = existing ? existing.length : 0;
+  const MAX_APPLICATIONS = 1;
+
+  if (existingCount >= MAX_APPLICATIONS) {
+    return NextResponse.json(
+      { error: '이미 부스를 신청했어요. 한 학생 당 부스는 하나만 신청할 수 있습니다.' },
+      { status: 400 }
+    );
+  }
+
+  if (selections.length > MAX_APPLICATIONS) {
+    return NextResponse.json(
+      { error: '부스는 하나만 선택할 수 있습니다.' },
       { status: 400 }
     );
   }
@@ -113,13 +129,5 @@ export async function POST(request) {
         message = '이미 같은 타임에 신청한 내역이 있습니다.';
       } else if (error.message?.includes('본인 과')) {
         message = '본인 과 부스는 신청할 수 없습니다.';
-      }
-      results.push({ time_slot, department, ok: false, message });
-    } else {
-      results.push({ time_slot, department, ok: true });
-    }
-  }
-
-  const anySuccess = results.some((r) => r.ok);
-  return NextResponse.json({ ok: anySuccess, results });
-}
+      } else if (error.message?.includes('하나만 신청')) {
+        message = '한 학생 당 부스는 하나만 신청할 수
