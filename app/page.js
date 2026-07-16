@@ -2,8 +2,22 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { DEPARTMENTS, DEPARTMENT_COLORS, TIME_SLOTS, getOwnDepartment, getContrastTextColor } from '@/lib/departments';
+import { getApplicationWindowStatus, formatKoreanDateTime, APPLICATION_OPEN, APPLICATION_CLOSE } from '@/lib/applicationWindow';
 
 const CAPACITY = 25;
+
+function formatCountdown(ms) {
+  if (ms <= 0) return '0초';
+  const totalSeconds = Math.floor(ms / 1000);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const parts = [];
+  if (h > 0) parts.push(`${h}시간`);
+  if (h > 0 || m > 0) parts.push(`${m}분`);
+  parts.push(`${s}초`);
+  return parts.join(' ');
+}
 
 export default function ApplyPage() {
   const [studentName, setStudentName] = useState('');
@@ -15,8 +29,18 @@ export default function ApplyPage() {
   const [counts, setCounts] = useState({}); // { "department_time_slot": count }
   const [submitting, setSubmitting] = useState(false);
   const [resultMsg, setResultMsg] = useState(null); // { type: 'error'|'success', text }
+  const [now, setNow] = useState(() => new Date());
 
   const ownDept = useMemo(() => getOwnDepartment(studentClass), [studentClass]);
+
+  // 1초마다 현재 시각을 갱신해서 신청 기간 배너/카운트다운을 실시간으로 보여줌
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const windowStatus = useMemo(() => getApplicationWindowStatus(now), [now]);
+  const isOpen = windowStatus.status === 'open';
 
   const allFull = useMemo(() => {
     return DEPARTMENTS.every((d) =>
@@ -43,6 +67,7 @@ export default function ApplyPage() {
   }, []);
 
   function toggleCell(department, timeSlotId) {
+    if (!isOpen) return;
     if (department === ownDept) return;
 
     const alreadySelected =
@@ -63,6 +88,17 @@ export default function ApplyPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setResultMsg(null);
+
+    if (!isOpen) {
+      setResultMsg({
+        type: 'error',
+        text:
+          windowStatus.status === 'before'
+            ? `아직 신청 기간이 아닙니다. ${formatKoreanDateTime(APPLICATION_OPEN)}부터 신청할 수 있어요.`
+            : '신청 기간이 종료되었습니다.',
+      });
+      return;
+    }
 
     if (!studentName.trim() || !studentGrade || !studentClass || !studentNumber || !password) {
       setResultMsg({ type: 'error', text: '이름, 학년, 반, 번호, 비밀번호를 모두 입력해주세요.' });
@@ -136,6 +172,26 @@ export default function ApplyPage() {
         </a>
       </div>
 
+      {windowStatus.status === 'before' && (
+        <div className="msg error">
+          아직 신청 기간이 아닙니다. <strong>{formatKoreanDateTime(APPLICATION_OPEN)}</strong>부터{' '}
+          <strong>{formatKoreanDateTime(APPLICATION_CLOSE)}</strong>까지 신청할 수 있어요.
+          <br />
+          (신청 시작까지 {formatCountdown(windowStatus.open - now)} 남았어요)
+        </div>
+      )}
+      {windowStatus.status === 'after' && (
+        <div className="msg error">
+          신청이 마감되었습니다. (신청 기간: {formatKoreanDateTime(APPLICATION_OPEN)} ~{' '}
+          {formatKoreanDateTime(APPLICATION_CLOSE)})
+        </div>
+      )}
+      {isOpen && (
+        <div className="msg success">
+          지금 신청할 수 있어요! (신청 마감까지 {formatCountdown(windowStatus.close - now)} 남았어요)
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
         {allFull && (
           <div className="msg error">
@@ -152,6 +208,7 @@ export default function ApplyPage() {
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
                 placeholder="홍길동"
+                disabled={!isOpen}
               />
             </div>
             <div className="field" style={{ flex: 1 }}>
@@ -164,6 +221,7 @@ export default function ApplyPage() {
                 value={studentGrade}
                 onChange={(e) => setStudentGrade(e.target.value)}
                 placeholder="1~3"
+                disabled={!isOpen}
               />
             </div>
             <div className="field" style={{ flex: 1 }}>
@@ -176,6 +234,7 @@ export default function ApplyPage() {
                 value={studentClass}
                 onChange={(e) => setStudentClass(e.target.value)}
                 placeholder="1~10"
+                disabled={!isOpen}
               />
             </div>
             <div className="field" style={{ flex: 1 }}>
@@ -188,6 +247,7 @@ export default function ApplyPage() {
                 value={studentNumber}
                 onChange={(e) => setStudentNumber(e.target.value)}
                 placeholder="번호"
+                disabled={!isOpen}
               />
             </div>
           </div>
@@ -200,6 +260,7 @@ export default function ApplyPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="4자 이상 (신청 조회/취소 시 필요)"
+                disabled={!isOpen}
               />
             </div>
           </div>
@@ -245,7 +306,7 @@ export default function ApplyPage() {
                       const full = count >= CAPACITY;
                       const selected =
                         selection && selection.time_slot === t.id && selection.department === dept;
-                      const disabled = isOwn || (full && !selected);
+                      const disabled = !isOpen || isOwn || (full && !selected);
 
                       return (
                         <td
@@ -294,8 +355,8 @@ export default function ApplyPage() {
 
         {resultMsg && <div className={`msg ${resultMsg.type}`}>{resultMsg.text}</div>}
 
-        <button type="submit" className="primary" disabled={submitting || allFull}>
-          {allFull ? '신청 마감' : submitting ? '신청 중...' : '신청하기'}
+        <button type="submit" className="primary" disabled={submitting || allFull || !isOpen}>
+          {!isOpen ? '신청 기간이 아닙니다' : allFull ? '신청 마감' : submitting ? '신청 중...' : '신청하기'}
         </button>
       </form>
 
