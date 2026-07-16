@@ -61,3 +61,247 @@ export default function ApplyPage() {
   }
 
   async function handleSubmit(e) {
+    e.preventDefault();
+    setResultMsg(null);
+
+    if (!studentName.trim() || !studentGrade || !studentClass || !studentNumber || !password) {
+      setResultMsg({ type: 'error', text: '이름, 학년, 반, 번호, 비밀번호를 모두 입력해주세요.' });
+      return;
+    }
+
+    if (password.length < 4) {
+      setResultMsg({ type: 'error', text: '비밀번호는 4자 이상으로 입력해주세요.' });
+      return;
+    }
+
+    if (!selection) {
+      setResultMsg({ type: 'error', text: '체험할 부스를 하나 선택해주세요.' });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_name: studentName,
+          student_grade: studentGrade,
+          student_class: studentClass,
+          student_number: studentNumber,
+          password,
+          selections: [selection],
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setResultMsg({ type: 'error', text: data.error || '신청 중 오류가 발생했습니다.' });
+      } else {
+        const failed = data.results.filter((r) => !r.ok);
+
+        if (failed.length === 0) {
+          setResultMsg({ type: 'success', text: '신청이 완료되었습니다!' });
+          setSelection(null);
+        } else {
+          setResultMsg({
+            type: 'error',
+            text: failed.map((f) => f.message).join(' / '),
+          });
+        }
+      }
+      loadCounts();
+    } catch (err) {
+      setResultMsg({ type: 'error', text: '네트워크 오류가 발생했습니다. 다시 시도해주세요.' });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="page">
+      <div className="header">
+        <div className="header-title">
+          <img src="/logo.png" alt="학교 로고" className="school-logo" />
+          <div>
+            <div className="eyebrow">한영외국어고등학교 문화제</div>
+            <h1>부스 체험 신청</h1>
+            <p className="subtitle">
+              본인 과 부스를 제외한 부스 중 딱 하나만 골라 신청할 수 있어요. (타임별 정원 {CAPACITY}명)
+            </p>
+          </div>
+        </div>
+        <a href="/my-applications" className="link-button">
+          내 신청 확인·취소
+        </a>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        {allFull && (
+          <div className="msg error">
+            모든 타임의 정원이 마감되어 더 이상 신청을 받지 않습니다.
+          </div>
+        )}
+        <div className="card">
+          <div className="field-row">
+            <div className="field" style={{ flex: 2 }}>
+              <label htmlFor="name">이름</label>
+              <input
+                id="name"
+                type="text"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                placeholder="홍길동"
+              />
+            </div>
+            <div className="field" style={{ flex: 1 }}>
+              <label htmlFor="grade">학년</label>
+              <input
+                id="grade"
+                type="number"
+                min="1"
+                max="3"
+                value={studentGrade}
+                onChange={(e) => setStudentGrade(e.target.value)}
+                placeholder="1~3"
+              />
+            </div>
+            <div className="field" style={{ flex: 1 }}>
+              <label htmlFor="class">반</label>
+              <input
+                id="class"
+                type="number"
+                min="1"
+                max="10"
+                value={studentClass}
+                onChange={(e) => setStudentClass(e.target.value)}
+                placeholder="1~10"
+              />
+            </div>
+            <div className="field" style={{ flex: 1 }}>
+              <label htmlFor="number">번호</label>
+              <input
+                id="number"
+                type="number"
+                min="1"
+                max="40"
+                value={studentNumber}
+                onChange={(e) => setStudentNumber(e.target.value)}
+                placeholder="번호"
+              />
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field" style={{ flex: 1 }}>
+              <label htmlFor="password">비밀번호</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="4자 이상 (신청 조회/취소 시 필요)"
+              />
+            </div>
+          </div>
+          <p className="footer-note" style={{ marginTop: 0 }}>
+            나중에 신청 내역을 조회하거나 취소할 때 필요하니 잊지 않게 기억해두세요.
+          </p>
+          {ownDept && (
+            <p className="footer-note" style={{ marginTop: 0 }}>
+              본인 소속: <strong>{ownDept}</strong> (선택 목록에서 회색으로 표시돼요)
+            </p>
+          )}
+        </div>
+
+        <div className="card">
+          <table className="matrix">
+            <thead>
+              <tr>
+                <th className="dept-label">과 \ 타임</th>
+                {TIME_SLOTS.map((t) => (
+                  <th key={t.id}>
+                    {t.label}
+                    <br />
+                    {t.time}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {DEPARTMENTS.map((dept) => {
+                const isOwn = dept === ownDept;
+                return (
+                  <tr key={dept} className={isOwn ? 'own-dept-row' : ''}>
+                    <td className="dept-label">
+                      <span
+                        className="dept-tag"
+                        style={{ background: DEPARTMENT_COLORS[dept] }}
+                      />
+                      {dept}
+                      {isOwn && ' (본인 과)'}
+                    </td>
+                    {TIME_SLOTS.map((t) => {
+                      const count = counts[`${dept}_${t.id}`] || 0;
+                      const full = count >= CAPACITY;
+                      const selected =
+                        selection && selection.time_slot === t.id && selection.department === dept;
+                      const disabled = isOwn || (full && !selected);
+
+                      return (
+                        <td
+                          key={t.id}
+                          className={`slot-cell ${disabled ? 'disabled' : ''}`}
+                          onClick={() => !disabled && toggleCell(dept, t.id)}
+                          style={
+                            selected
+                              ? {
+                                  background: DEPARTMENT_COLORS[dept],
+                                  color: getContrastTextColor(DEPARTMENT_COLORS[dept]),
+                                  border: '2px solid #1c1c1a',
+                                  fontWeight: 600,
+                                }
+                              : undefined
+                          }
+                        >
+                          {selected ? '선택됨' : isOwn ? '-' : full ? '마감' : '선택'}
+                          {!isOwn && (
+                            <span
+                              className="slot-count"
+                              style={
+                                selected
+                                  ? { color: getContrastTextColor(DEPARTMENT_COLORS[dept]) }
+                                  : undefined
+                              }
+                            >
+                              {count}/{CAPACITY}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="footer-note" style={{ marginTop: 0 }}>
+          {selection
+            ? `선택함: ${selection.department} / ${TIME_SLOTS.find((t) => t.id === selection.time_slot)?.label}`
+            : '아직 선택한 부스가 없어요.'}
+        </p>
+
+        {resultMsg && <div className={`msg ${resultMsg.type}`}>{resultMsg.text}</div>}
+
+        <button type="submit" className="primary" disabled={submitting || allFull}>
+          {allFull ? '신청 마감' : submitting ? '신청 중...' : '신청하기'}
+        </button>
+      </form>
+
+      <p className="footer-note">
+        문의사항이 있으면 담당 선생님 또는 축제 준비 위원회로 연락해주세요.
+      </p>
+    </main>
+  );
+}
