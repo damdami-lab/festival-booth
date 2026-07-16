@@ -127,7 +127,7 @@ create trigger trg_check_own_department
 before insert on applications
 for each row execute function check_own_department();
 
--- 한 학생(학년+반+번호)이 최대 2개까지만 신청할 수 있도록 막는 트리거
+-- 한 학생(학년+반+번호)은 부스를 딱 하나만 신청할 수 있도록 막는 트리거
 create or replace function check_max_applications()
 returns trigger as $$
 declare
@@ -146,8 +146,8 @@ begin
     and student_class = new.student_class
     and student_number = new.student_number;
 
-  if current_count >= 2 then
-    raise exception '한 학생 당 최대 2개까지만 신청할 수 있습니다';
+  if current_count >= 1 then
+    raise exception '한 학생 당 부스는 하나만 신청할 수 있습니다';
   end if;
 
   return new;
